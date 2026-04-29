@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bio-Implant Expert System | Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --surface-color: #1e293b;
+            --border-color: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-color: #38bdf8;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* --- Sidebar (Inputs) --- */
+        .sidebar {
+            width: 320px;
+            min-width: 320px;
+            background-color: var(--surface-color);
+            border-right: 1px solid var(--border-color);
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            overflow-y: auto;
+        }
+
+        .brand h1 {
+            font-size: 1.5rem;
+            margin: 0;
+            color: var(--text-primary);
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .brand p {
+            color: var(--accent-color);
+            font-size: 0.85rem;
+            margin-top: 0.25rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .conditions {
+            background-color: rgba(56, 189, 248, 0.1);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .conditions strong { color: var(--accent-color); }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        select, input {
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.8rem;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 1rem;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        button {
+            background-color: var(--accent-color);
+            color: #0f172a;
+            border: none;
+            padding: 1rem;
+            border-radius: 6px;
+            font-weight: 800;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            margin-top: 1rem;
+        }
+
+        button:hover { opacity: 0.9; }
+
+        /* --- Main Stage (Outputs) --- */
+        .main-stage {
+            flex: 1;
+            padding: 2.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            overflow-y: auto;
+        }
+
+        .header-area {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-area h2 {
+            margin: 0;
+            font-weight: 300;
+            font-size: 2rem;
+            color: var(--text-secondary);
+        }
+
+        /* --- KPI Cards --- */
+        #results-area {
+            display: none;
+            animation: fadeIn 0.5s ease;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .kpi-card {
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+        }
+
+        .kpi-title {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+
+        /* Circular Dial CSS */
+        .dial {
+            width: 140px;       /* Increased from 120px */
+            height: 140px;      /* Increased from 120px */
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: conic-gradient(var(--border-color) 100%, transparent 0);
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        .dial::before {
+            content: "";
+            position: absolute;
+            width: 116px;       /* Increased inner space from 100px */
+            height: 116px;      /* Increased inner space from 100px */
+            background-color: var(--surface-color);
+            border-radius: 50%;
+        }
+
+        .dial-value {
+            position: relative;
+            font-size: 1.4rem;  /* Decreased from 2.2rem so negative numbers fit */
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .kpi-unit {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .accuracy-badge {
+            margin-top: 1rem;
+            background-color: rgba(255,255,255,0.05);
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        /* --- Insights --- */
+        .insights-panel {
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+        }
+
+        .insights-panel h3 {
+            margin-top: 0;
+            font-size: 1.2rem;
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .expert-comment {
+            background-color: var(--bg-color);
+            padding: 1.2rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border-left: 4px solid var(--border-color);
+            line-height: 1.6;
+            font-size: 0.95rem;
+            color: #cbd5e1;
+        }
+
+        .expert-comment b {
+            color: var(--text-primary);
+        }
+
+        /* Loader */
+        .loader {
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--accent-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: auto;
+            display: none;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+
+    </style>
+</head>
+<body>
+
+<aside class="sidebar">
+    <div class="brand">
+        <h1>Expert Decision Support</h1>
+        <p>For Magnesium Alloys</p>
+    </div>
+
+    <div class="conditions">
+        <div><strong>Load:</strong> 20 N</div>
+        <div><strong>Freq:</strong> 3 Hz</div>
+        <div><strong>Env:</strong> 3.5 wt. % NaCl</div>
+    </div>
+
+    <form id="prediction-form">
+        <div class="form-group">
+            <label for="alloyType">Material Composition</label>
+            <select id="alloyType" name="alloyType" required>
+                <option value="" disabled selected>Select Alloy...</option>
+                {% for alloy in alloy_types %}
+                <option value="{{ alloy }}">{{ alloy }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="timestamp">Exposure Time (s)</label>
+            <input type="number" id="timestamp" name="timestamp" placeholder="e.g. 3600" min="0" step="0.1" required>
+        </div>
+
+        <button type="submit">Run Diagnostics</button>
+    </form>
+    
+    <div class="loader" id="loader"></div>
+    <div id="error-message" style="color: var(--danger-color); font-size: 0.9rem; text-align: center;"></div>
+</aside>
+
+<main class="main-stage">
+    <div class="header-area">
+        <h2>Live Diagnostics</h2>
+        <div id="status-indicator" style="font-size: 0.9rem; color: var(--text-secondary);">Waiting for input...</div>
+    </div>
+
+    <div id="results-area">
+        <div class="kpi-grid">
+            <div class="kpi-card" id="card-cof">
+                <div class="kpi-title">Coefficient of Friction</div>
+                <div class="dial" id="dial-cof">
+                    <div class="dial-value" id="res-cof">--</div>
+                </div>
+                <div class="kpi-unit">Dimensionless</div>
+                <div class="accuracy-badge" id="acc-cof">R²: --%</div>
+            </div>
+
+            <div class="kpi-card" id="card-ocp">
+                <div class="kpi-title">Corrosion Potential</div>
+                <div class="dial" id="dial-ocp">
+                    <div class="dial-value" id="res-ocp">--</div>
+                </div>
+                <div class="kpi-unit">Volts (vs NHE)</div>
+                <div class="accuracy-badge" id="acc-ocp">R²: --%</div>
+            </div>
+
+            <div class="kpi-card" id="card-wear">
+                <div class="kpi-title">Max Wear Depth</div>
+                <div class="dial" id="dial-wear">
+                    <div class="dial-value" id="res-depth">--</div>
+                </div>
+                <div class="kpi-unit">Micrometers (µm)</div>
+                <div class="accuracy-badge">Static Profilometry</div>
+            </div>
+        </div>
+
+        <div class="insights-panel">
+            <h3>Clinical Insight & Expert Context</h3>
+            <div id="res-comments"></div>
+        </div>
+    </div>
+</main>
+
+<script>
+    const form = document.getElementById('prediction-form');
+    const resultsArea = document.getElementById('results-area');
+    const loader = document.getElementById('loader');
+    const errorMsg = document.getElementById('error-message');
+    const statusInd = document.getElementById('status-indicator');
+
+    // Helper function to animate dial rings
+    function updateDial(dialId, percentage, color) {
+        const dial = document.getElementById(dialId);
+        dial.style.background = `conic-gradient(${color} ${percentage}%, var(--border-color) 0)`;
+    }
+
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        resultsArea.style.display = 'none';
+        errorMsg.textContent = '';
+        loader.style.display = 'block';
+        statusInd.textContent = 'Computing ML predictions...';
+
+        const formData = {
+            alloyType: document.getElementById('alloyType').value,
+            timestamp: document.getElementById('timestamp').value
+        };
+
+        try {
+            const response = await fetch('/predict', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'Server error.');
+
+            // 1. Friction (COF)
+            const cof = data.predicted_cof;
+            document.getElementById('res-cof').textContent = cof;
+            if (data.metrics && data.metrics.cof_accuracy !== undefined && data.metrics.cof_accuracy !== 'N/A') {
+                document.getElementById('acc-cof').innerHTML = `Test Acc: ${data.metrics.cof_accuracy}%`;
+            }
+            
+            // Logic for Dial Color & Fill (Max assumes ~1.0 COF for full ring)
+            let cofColor = 'var(--accent-color)';
+            if(cof < 0.20) cofColor = 'var(--success-color)';
+            else if(cof > 0.40) cofColor = 'var(--danger-color)';
+            else cofColor = 'var(--warning-color)';
+            updateDial('dial-cof', Math.min((cof / 1.0) * 100, 100), cofColor);
+
+            // 2. Corrosion (OCP)
+            const ocp = data.predicted_ocp;
+            document.getElementById('res-ocp').textContent = ocp;
+            if (data.metrics && data.metrics.ocp_accuracy !== undefined && data.metrics.ocp_accuracy !== 'N/A') {
+                document.getElementById('acc-ocp').innerHTML = `Test Acc: ${data.metrics.ocp_accuracy}%`;
+            }
+            
+            // Logic for Dial Color & Fill (Visualized relatively)
+            let ocpColor = 'var(--accent-color)';
+            if(ocp < -1.4) ocpColor = 'var(--danger-color)';
+            else if(ocp > -1.25) ocpColor = 'var(--success-color)';
+            else ocpColor = 'var(--warning-color)';
+            updateDial('dial-ocp', 75, ocpColor); // Fixed visual fill, color defines status
+
+            // 3. Wear
+            const wear = data.wear_metrics.max_depth_um;
+            document.getElementById('res-depth').textContent = wear;
+            let wearColor = 'var(--accent-color)';
+            if(wear !== 'N/A') {
+                const wd = parseFloat(wear);
+                if(wd > 20.0) wearColor = 'var(--danger-color)';
+                else if(wd < 10.0) wearColor = 'var(--success-color)';
+                else wearColor = 'var(--warning-color)';
+                updateDial('dial-wear', Math.min((wd / 30.0) * 100, 100), wearColor); // Assumes 30um is "max" dial
+            } else {
+                updateDial('dial-wear', 0, 'var(--border-color)');
+            }
+
+            // 4. Comments
+            const commentsContainer = document.getElementById('res-comments');
+            commentsContainer.innerHTML = ''; 
+            
+            if (data.comments && data.comments.length > 0) {
+                data.comments.forEach(comment => {
+                    let formattedComment = comment.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+                    const div = document.createElement('div');
+                    div.className = 'expert-comment';
+                    
+                    if (comment.includes('🟢')) div.style.borderLeftColor = 'var(--success-color)';
+                    if (comment.includes('🟡')) div.style.borderLeftColor = 'var(--warning-color)';
+                    if (comment.includes('🔴')) div.style.borderLeftColor = 'var(--danger-color)';
+                    
+                    div.innerHTML = formattedComment;
+                    commentsContainer.appendChild(div);
+                });
+            } else {
+                commentsContainer.innerHTML = '<p>No specific comments generated.</p>';
+            }
+
+            // Reveal
+            loader.style.display = 'none';
+            statusInd.textContent = `Displaying parameters for ${formData.alloyType} at ${formData.timestamp}s`;
+            resultsArea.style.display = 'flex';
+
+        } catch (error) {
+            loader.style.display = 'none';
+            statusInd.textContent = 'Error processing request.';
+            errorMsg.textContent = error.message;
+        }
+    });
+</script>
+</body>
+</html>
